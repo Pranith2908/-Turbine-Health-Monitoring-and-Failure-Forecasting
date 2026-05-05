@@ -1,0 +1,40 @@
+import streamlit as st
+import pickle
+import numpy as np
+
+# Load the trained model
+with open("RF_turbine_model.pkl", "rb") as f:
+    model = pickle.load(f)
+
+st.title("------   Turbine Health Monitoring   ------------- and Failure Forecasting ------")
+st.write("     Predict turbine failure risk using sensor data")
+
+# Input fields for the 10 features
+wind_speed = st.number_input("Wind Speed (m/s)", min_value=0.0, step=0.1, value=8.6)
+rotor_speed = st.number_input("Rotor Speed (RPM)", min_value=0.0, step=0.1, value=13.8)
+blade_angle = st.number_input("Blade Angle (degrees)", min_value=0.0, max_value=90.0, step=0.5, value=27.0)
+gearbox_temp = st.number_input("Gearbox Temperature (°C)", min_value=-20.0, max_value=150.0, step=0.5, value=79.0)
+generator_temp = st.number_input("Generator Temperature (°C)", min_value=-20.0, max_value=200.0, step=0.5, value=93.0)
+vibration = st.number_input("Vibration Level", min_value=0.0, max_value=20.0, step=0.1, value=1.3)
+power_output = st.number_input("Power Output (kW)", min_value=0.0, max_value=20000.0, step=10.0, value=1485.0)
+humidity = st.number_input("Humidity (%)", min_value=0.0, max_value=100.0, step=1.0, value=79.0)
+ambient_temp = st.number_input("Ambient Temperature (°C)", min_value=-30.0, max_value=60.0, step=0.5, value=21.0)
+time_since_maint = st.number_input("Time Since Last Maintenance (days)", min_value=0.0, max_value=1000.0, step=1.0, value=180.0)
+
+# Predict button
+if st.button("Predict"):
+    # Arrange inputs in the same order as training
+    input_data = np.array([[wind_speed, rotor_speed, blade_angle, gearbox_temp,
+                            generator_temp, vibration, power_output, humidity,
+                            ambient_temp, time_since_maint]])
+    
+    prediction = model.predict(input_data)
+    
+    # Debug output
+    st.write("Raw model prediction:", prediction[0])
+    
+    # Interpret result
+    if prediction[0] == 1:
+        st.error(" Failure Likely - Maintenance Needed!")
+    else:
+        st.success(" No Failure Detected - Turbine is Healthy")
